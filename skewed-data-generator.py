@@ -35,7 +35,7 @@ order_table = args.order_table
 def generate_customer_data(spark, num_customers, target_duplicates, skew_factor, num_partitions):
     # Generate a base DataFrame with an appropriate number of rows
     num_rows = target_duplicates // num_partitions * num_partitions
-    base_df = spark.range(num_rows).repartition(num_partitions)
+    base_df = spark.range(0,num_rows,step=1, numPartitions=num_partitions)
 
     # Create a skewed customer ID column
     customer_df = base_df.withColumn(
@@ -52,7 +52,7 @@ def generate_customer_data(spark, num_customers, target_duplicates, skew_factor,
 
 # Generate skewed orders data
 def generate_order_data(spark, num_customers, num_orders, num_partitions):
-    order_df = spark.range(1, num_orders + 1).repartition(num_partitions)
+    order_df = spark.range(1, num_orders + 1, step=1, numPartitions=num_partitions)
     order_df = order_df.withColumn("CustomerID", (col("id") % num_customers) + 1)
     order_df = order_df.withColumn("Product", concat(lit("Product "), col("id").cast(StringType())))
     order_df = order_df.withColumn("Price", (col("id") % 90 + 10).cast(DoubleType()))
